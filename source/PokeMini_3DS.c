@@ -35,23 +35,10 @@
 #include "Video_x1.h"
 #include "Video_x2.h"
 #include "PokeMini_BG3.h"
+#include "PokeMini_3DS.h"
 #include "PokeMini_3DS_sound.h"
 
 #define RUMBLEOFFSET	8
-
-// Video frequency constants
-#define PM_FPS 36
-#define TICKS_PER_SEC (268123480.0)
-#define TICKS_PER_NSEC (0.268123480)
-#define TICKS_PER_FRAME (TICKS_PER_SEC/PM_FPS)
-
-// Sound constants
-
-#define SOUND_FREQUENCY	44100
-#define SOUND_SAMPLES_PER_FRAME	(SOUND_FREQUENCY/PM_FPS)
-#define SOUND_BUFFER_SIZE	(SOUND_SAMPLES_PER_FRAME*4)
-#define PMSOUNDBUFF	(SOUND_BUFFER_SIZE*2)
-
 
 const char *AppName = "PokeMini " PokeMini_Version " 3DS";
 
@@ -461,24 +448,32 @@ int main()
 
 	u8  isN3DS = 0;
 
-	aptInit();
+	aptOpenSession();
+	APT_SetAppCpuTimeLimit(NULL, 30); // enables syscore usage
+	aptCloseSession();
 
 	APT_CheckNew3DS(NULL, &isN3DS);
-
+	
     sdmcArchive = (FS_archive){ARCH_SDMC, (FS_path){PATH_EMPTY, 1, (u8*)""}};
     FSUSER_OpenArchive(NULL, &sdmcArchive);
 
 	printf("%s\n\n", AppName);
-	PokeMini_InitDirs("/Pokemini", NULL);
-	PokeMini_GotoExecDir();
 	
-	sprintf(buffer, "%s/%s", PokeMini_CurrDir, "Roms");
-	PokeMini_GotoCustomDir(buffer);
-	strncpy(CommandLine.rom_dir, PokeMini_CurrDir, PMTMPV-1);
-	PokeMini_GotoExecDir();
+	strncpy(buffer, "/Pokemini", PMTMPV-1);
+	
+	chdir(buffer);
+	PokeMini_GetCurrentDir();
+	strcpy(PokeMini_ExecDir, PokeMini_CurrDir);
+
+	PokeMini_GetCurrentDir();
 	
 	CommandLineInit();
-	CommandLine.synccycles = 16; // default for 3DS
+
+	if (isN3DS) 
+		CommandLine.synccycles = 8; // best performance on n3ds
+	else
+		CommandLine.synccycles = 16; // default for o3DS to reach 72fps
+		
 	CommandLineConfFile("pokemini.cfg", NULL, NULL);
 	JoystickSetup("3DS", 0, 30000, Joy_KeysNames, 12, Joy_KeysMapping);
 

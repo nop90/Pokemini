@@ -17,7 +17,12 @@
 #include <3ds.h>
 
 // Sound buffer size
-#define SOUND_BUFFER_SIZE	2048
+// Sound constants
+
+#define SOUND_FREQUENCY	44100
+#define SOUND_SAMPLES_PER_FRAME	(SOUND_FREQUENCY/PM_FPS)
+#define SOUND_BUFFER_SIZE	(SOUND_SAMPLES_PER_FRAME*4)
+#define PMSOUNDBUFF	(SOUND_BUFFER_SIZE*2)
 
 u8 *stream;
 

@@ -13,6 +13,7 @@
 //#include <malloc.h>
 
 #include <3ds.h>
+#include "PokeMini_3DS.h"
 #include "PokeMini_3ds_sound.h"
 #include "PokeMini.h"
 

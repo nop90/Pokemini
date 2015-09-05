@@ -445,12 +445,14 @@ void PokeMini_InitDirs(char *argv0, char *exec)
 	PokeMini_GetCurrentDir();
 
 	// Get executable directory
+
 	if (argv0) {
-		if ((argv0[0] == '/') || (strchr(argv0, ':') != NULL)) {
+//		if ((argv0[0] == '/') || (strchr(argv0, ':') != NULL)) {
 			// Absolute path
 			strcpy(PokeMini_ExecDir, argv0);
 			if (exec) strcpy(exec, PokeMini_ExecDir);
 			ExtractPath(PokeMini_ExecDir, 1);
+/*
 		} else {
 			// Not an absolute path
 			if (HasLastSlash(PokeMini_CurrDir)) sprintf(PokeMini_ExecDir, "%s%s", PokeMini_CurrDir, argv0);
@@ -458,6 +460,7 @@ void PokeMini_InitDirs(char *argv0, char *exec)
 			if (exec) strcpy(exec, PokeMini_ExecDir);
 			ExtractPath(PokeMini_ExecDir, 1);
 		}
+*/
 	} else {
 		strcpy(PokeMini_ExecDir, PokeMini_CurrDir);
 	}
@@ -482,19 +485,9 @@ void PokeMini_GotoCustomDir(const char *dir)
 	strcpy(buffer, dir);
 	ConvertSlashes(buffer, PATH_SLASH_OS);
 
-#ifdef D_3DS___D	
-// nop90 - 3DS platform
-	extern FS_archive sdmcArchive;
-	extern Handle dirHandle;
-    
-	FS_path dirPath = (FS_path){PATH_CHAR, strlen(buffer)+1, (u8*)buffer};
-    FSUSER_OpenDirectory(NULL, &dirHandle, sdmcArchive, dirPath);
-#elseif
-
 	if (chdir(buffer)) {
 		PokeDPrint(POKEMSG_ERR, "abs chdir('%s') error\n", buffer);
 	}
-#endif
 }
 
 // Get current directory
