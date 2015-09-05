@@ -1,0 +1,5 @@
+APP_TITLE = PokeMini 3DS
+APP_DESCRIPTION = Pokemon Mini emulator
+APP_AUTHOR = JustBurn (Port to 3DS by nop90)
+APP_PRODUCT_CODE = CTR-P-PKMN
+APP_UNIQUE_ID = 0x998f
