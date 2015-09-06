@@ -13,7 +13,6 @@
 //#include <malloc.h>
 
 #include <3ds.h>
-#include "PokeMini_3DS.h"
 #include "PokeMini_3ds_sound.h"
 #include "PokeMini.h"
 
@@ -46,7 +45,7 @@ void pm_3ds_sound_start(int freq, int len)
 {
 	bufferpos = 0;
 	soundstate=1;
-	pm_3ds_sound_callback(len); // Filling first frame with +10% of samples to avoid buffer get empty
+	pm_3ds_sound_callback(len*1.2); // Filling first frame with +25% of samples to avoid buffer get empty
 	GSPGPU_FlushDataCache(NULL, stream, SOUND_BUFFER_SIZE);
 	csndPlaySound(0x8, SOUND_REPEAT | SOUND_FORMAT_8BIT, freq, 1.0, 0.0, (u32*)stream, (u32*)stream, SOUND_BUFFER_SIZE);
 }

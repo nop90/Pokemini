@@ -19,10 +19,6 @@
 #include "PMCommon.h"
 #include <ctype.h>
 
-#ifdef D_3DS
-#include <3ds.h>
-#endif
-
 // Return true if the string is valid and non-empty
 int StringIsSet(char *str)
 {
@@ -445,7 +441,6 @@ void PokeMini_InitDirs(char *argv0, char *exec)
 	PokeMini_GetCurrentDir();
 
 	// Get executable directory
-
 	if (argv0) {
 //		if ((argv0[0] == '/') || (strchr(argv0, ':') != NULL)) {
 			// Absolute path
@@ -484,6 +479,7 @@ void PokeMini_GotoCustomDir(const char *dir)
 	char buffer[PMTMPV];
 	strcpy(buffer, dir);
 	ConvertSlashes(buffer, PATH_SLASH_OS);
+
 
 	if (chdir(buffer)) {
 		PokeDPrint(POKEMSG_ERR, "abs chdir('%s') error\n", buffer);

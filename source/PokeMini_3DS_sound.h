@@ -15,11 +15,12 @@
 #include <string.h>
  
 #include <3ds.h>
+#include "PokeMini_3DS.h"
 
 // Sound buffer size
 // Sound constants
 
-#define SOUND_FREQUENCY	44100
+#define SOUND_FREQUENCY	44100.0
 #define SOUND_SAMPLES_PER_FRAME	(SOUND_FREQUENCY/PM_FPS)
 #define SOUND_BUFFER_SIZE	(SOUND_SAMPLES_PER_FRAME*4)
 #define PMSOUNDBUFF	(SOUND_BUFFER_SIZE*2)

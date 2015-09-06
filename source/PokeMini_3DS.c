@@ -453,13 +453,13 @@ int main()
 	aptCloseSession();
 
 	APT_CheckNew3DS(NULL, &isN3DS);
-	
+
     sdmcArchive = (FS_archive){ARCH_SDMC, (FS_path){PATH_EMPTY, 1, (u8*)""}};
     FSUSER_OpenArchive(NULL, &sdmcArchive);
 
 	printf("%s\n\n", AppName);
-	
-	strncpy(buffer, "/Pokemini", PMTMPV-1);
+
+	strncpy(buffer, "sdmc:/Pokemini", PMTMPV-1);
 	
 	chdir(buffer);
 	PokeMini_GetCurrentDir();
@@ -525,14 +525,16 @@ int main()
 
 	// initialize timers
 	u64 tickcurr;
-	u64 fpsticknext,fpstickres = TICKS_PER_SEC;
-	u64 frmticknext, frmtickres = TICKS_PER_FRAME;
+	u64 fpsticknext,frmticknext,frmtickold;
+	
+	float deltafrmtick;
 
 	int fps = 72, fpscnt = 0;
 	strcpy(fpstxt, "");
 	tickcurr=svcGetSystemTick();
-	fpsticknext = tickcurr + fpstickres;
-	frmticknext = tickcurr + frmtickres;
+	fpsticknext = tickcurr + TICKS_PER_SEC;
+	frmticknext = tickcurr + TICKS_PER_FRAME;
+	deltafrmtick = (float)tickcurr + TICKS_PER_FRAME - frmticknext;
 	
 		// Emulator's loop
 	while (emurunning) {
@@ -548,17 +550,6 @@ int main()
 		else
 			pm_3ds_sound_start(SOUND_FREQUENCY,SOUND_SAMPLES_PER_FRAME);  
 
-/*
-		if (RequireSoundSync) {
-			while (MinxAudio_SyncWithAudio()) svcSleepThread(1000000);
-		} else {
-			do {
-				tickcurr=svcGetSystemTick();
-			} while (tickcurr < frmticknext);
-//			frmticknext = tickcurr + frmtickres;	
-			frmticknext = frmticknext + frmtickres;	// Approx 36 times per sec
-		}
-*/
 		// Screen rendering: render the game screen
 		if (PokeMini_Rumbling) {
 			PokeMini_VideoBlit(screentex1->data + RUMBLEOFFSET, PixPitch);
@@ -577,10 +568,12 @@ int main()
 		svcSleepThread((float)(frmticknext - svcGetSystemTick()) / TICKS_PER_NSEC);  // sync to 72 FPS
 
 		tickcurr=svcGetSystemTick();
-		frmticknext = tickcurr + frmtickres;
+		frmtickold = frmticknext;
+		frmticknext = frmticknext + deltafrmtick + TICKS_PER_FRAME;
+		deltafrmtick = (float)frmtickold + deltafrmtick + TICKS_PER_FRAME - (float)frmticknext;
 		fpscnt++;
 		if (tickcurr >= fpsticknext) {
-			fpsticknext = fpsticknext + fpstickres;
+			fpsticknext = fpsticknext + TICKS_PER_SEC;
 			fps = fpscnt;
 			fpscnt = 0;
 			sprintf(fpstxt, "%i FPS", fps*2);
@@ -611,8 +604,9 @@ int main()
 			strcpy(fpstxt, "");
 			fpscnt = 0;
 			tickcurr=svcGetSystemTick();
-			fpsticknext = tickcurr + fpstickres;
-			frmticknext = tickcurr + frmtickres;
+			fpsticknext = tickcurr + TICKS_PER_SEC;
+			frmticknext = tickcurr + TICKS_PER_FRAME;
+			deltafrmtick = (float)tickcurr + TICKS_PER_FRAME - frmticknext;
 		}
 	}
 
