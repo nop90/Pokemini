@@ -26,7 +26,7 @@ Dependancies
 
 You need devkitPro uptdated with the last version of ctrulib.
 
-You also need to download, compile and install Xerpi's sf2dlib ().
+You also need to download, compile and install Xerpi's sf2dlib (http://github.com/xerpi/sf2dlib).
 
 Licence
 =====
