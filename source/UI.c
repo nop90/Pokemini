@@ -52,6 +52,8 @@ void UIDraw_BG_32(uint32_t *screen, int pitchW, const uint8_t *image, const uint
 		for (x=0; x<width; x+=2) {
 			screen[x] = 0xff000000 | palette[*image >> 4];
 			screen[x+1] = 0xff000000 | palette[*image++ & 15];
+//			screen[x] = 0xff | (palette[*image >> 4]<<8);
+//			screen[x+1] = 0xff | (palette[*image++ & 15]<<8);
 		}
 		screen += pitchW;
 	}
@@ -81,6 +83,8 @@ void UIDraw_Char_32(uint32_t *screen, int pitchW, int x, int y, uint8_t ch, cons
 		for (xc=0; xc<12; xc+=2) {
 			if (*chr >> 4) screen[xc] = 0xff000000 | palette[*chr >> 4];
 			if (*chr & 15) screen[xc+1] = 0xff000000 | palette[*chr & 15];
+//			if (*chr >> 4) screen[xc] = 0xff | (palette[*chr >> 4]<<8);
+//			if (*chr & 15) screen[xc+1] = 0xff | (palette[*chr & 15]<<8);
 			chr++;
 		}
 		chr += 96-6;
@@ -136,6 +140,8 @@ void UIDraw_Icon_32(uint32_t *screen, int pitchW, int x, int y, uint8_t ch)
 		for (xc=0; xc<12; xc+=2) {
 			if (*chr >> 4) screen[xc] = 0xff000000 | UI_Icons_Pal32[*chr >> 4];
 			if (*chr & 15) screen[xc+1] = 0xff000000 | UI_Icons_Pal32[*chr & 15];
+//			if (*chr >> 4) screen[xc] = 0xff | (UI_Icons_Pal32[*chr >> 4]<<8);
+//			if (*chr & 15) screen[xc+1] = 0xff | (UI_Icons_Pal32[*chr & 15]<<8);
 			chr++;
 		}
 		chr += 96-6;

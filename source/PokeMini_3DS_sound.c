@@ -29,15 +29,15 @@ int buffertail;
     if(soundstate) {
         if (bufferpos+len<=SOUND_BUFFER_SIZE) {
 			MinxAudio_GetSamplesU8(stream+bufferpos, len);  // I call a modded func that return S8 instead of U8
-			GSPGPU_FlushDataCache(NULL, stream+bufferpos, len);
+			GSPGPU_FlushDataCache(stream+bufferpos, len);
 		} else {
 			buffertail = SOUND_BUFFER_SIZE - bufferpos;
 			MinxAudio_GetSamplesU8(stream+bufferpos, buffertail);
 			MinxAudio_GetSamplesU8(stream, len-buffertail);
-			GSPGPU_FlushDataCache(NULL, stream+bufferpos, buffertail);
-			GSPGPU_FlushDataCache(NULL, stream, len-buffertail);
+			GSPGPU_FlushDataCache(stream+bufferpos, buffertail);
+			GSPGPU_FlushDataCache(stream, len-buffertail);
 		}
-	bufferpos= (bufferpos+len) % SOUND_BUFFER_SIZE;
+	bufferpos= (bufferpos+len) % (unsigned int) SOUND_BUFFER_SIZE;
     }
 }
 
@@ -46,8 +46,8 @@ void pm_3ds_sound_start(int freq, int len)
 	bufferpos = 0;
 	soundstate=1;
 	pm_3ds_sound_callback(len*1.2); // Filling first frame with +25% of samples to avoid buffer get empty
-	GSPGPU_FlushDataCache(NULL, stream, SOUND_BUFFER_SIZE);
-	csndPlaySound(0x8, SOUND_REPEAT | SOUND_FORMAT_8BIT, freq, 1.0, 0.0, (u32*)stream, (u32*)stream, SOUND_BUFFER_SIZE);
+	GSPGPU_FlushDataCache(stream, SOUND_BUFFER_SIZE);
+	csndPlaySound(0x8, SOUND_REPEAT | SOUND_FORMAT_8BIT, freq, 1.0, 0.0, (u32*)stream, (u32*)stream,  SOUND_BUFFER_SIZE);
 }
 
 void pm_3ds_sound_pause(void)

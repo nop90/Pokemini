@@ -21,9 +21,9 @@ POKEROOT = ../../
 #---------------------------------------------------------------------------------
 TARGET		:=	PokeMini
 BUILD		:=	build
-SOURCES		:=	$(POKEROOT)source $(POKEROOT)resource $(POKEROOT)freebios $(POKEROOT)dependencies/minizip $(POKEROOT)dependencies/zlib $(POKEROOT)sourcex $(POKEROOT)platform/3ds/source
+SOURCES		:=	$(POKEROOT)platform/3ds/source $(POKEROOT)source $(POKEROOT)resource $(POKEROOT)freebios $(POKEROOT)dependencies/minizip $(POKEROOT)dependencies/zlib $(POKEROOT)sourcex
 DATA		:=	data
-INCLUDES	:=	$(POKEROOT)source $(POKEROOT)resource $(POKEROOT)freebios $(POKEROOT)sourcex $(POKEROOT)dependencies/zlib $(POKEROOT)dependencies/minizip $(POKEROOT)dependencies/zlib $(POKEROOT)sourcex $(POKEROOT)platform/3ds
+INCLUDES	:=	$(POKEROOT)platform/3ds/source $(POKEROOT)source $(POKEROOT)resource $(POKEROOT)freebios $(POKEROOT)sourcex $(POKEROOT)dependencies/zlib $(POKEROOT)dependencies/minizip $(POKEROOT)dependencies/zlib $(POKEROOT)sourcex
 
 APP_TITLE		:= PokeMini 3DS
 APP_DESCRIPTION	:= PokeMini emulator for 3DS
@@ -48,7 +48,7 @@ LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project (order is important)
 #---------------------------------------------------------------------------------
-LIBS	:= -lsf2d -lctru -lm
+LIBS	:= -lsf2d -lcitro3d -lctru -lm
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

@@ -378,7 +378,7 @@ int16_t MinxAudio_PiezoFilter(int32_t Sample)
 	return Sample;
 }
 
-// nop90 - 3DS needs S8 , i modded U8 to not change th .h file. MinxAudio_GetSamplesS8 should be added
+// nop90 - 3DS needs S8 , i modded U8 to not change the .h file. MinxAudio_GetSamplesS8 should be added
 
 void MinxAudio_GetSamplesU8(uint8_t *soundout, int numsamples)
 {

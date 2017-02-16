@@ -124,6 +124,7 @@ void PokeMini_VideoAScanLine2x2_32(uint32_t *screen, int pitchW)
 		ptr = screen;
 		for (xk=0; xk<96; xk++) {
 			pix = 0xff000000 | VidPalette32[LCDPixelsA[LCDY + xk]];
+//			pix = 0xff | (VidPalette32[LCDPixelsA[LCDY + xk]]<<8);
 			*ptr++ = pix; *ptr++ = pix;
 		}
 		screen += pitchW;
@@ -188,6 +189,9 @@ void PokeMini_Video3ScanLine2x2_32(uint32_t *screen, int pitchW)
 				case 2: pix = 0xff000000 | VidPalette32[MinxLCD.Pixel1Intensity]; break;
 				case 1: pix = 0xff000000 | VidPalette32[(MinxLCD.Pixel0Intensity + MinxLCD.Pixel1Intensity) >> 1]; break;
 				default: pix = 0xff000000 | VidPalette32[MinxLCD.Pixel0Intensity]; break;
+//				case 2: pix = 0xff | (VidPalette32[MinxLCD.Pixel1Intensity]<<8); break;
+//				case 1: pix = 0xff | (VidPalette32[(MinxLCD.Pixel0Intensity + MinxLCD.Pixel1Intensity) >> 1]<<8); break;
+//				default: pix = 0xff | (VidPalette32[MinxLCD.Pixel0Intensity]<<8); break;
 			}
 			*ptr++ = pix; *ptr++ = pix;
 		}
@@ -258,6 +262,8 @@ void PokeMini_Video2ScanLine2x2_32(uint32_t *screen, int pitchW)
 	LCDY = 0;
 	pix1 = 0xff000000 | VidPalette32[MinxLCD.Pixel1Intensity];
 	pix0 = 0xff000000 | VidPalette32[MinxLCD.Pixel0Intensity];
+//	pix1 = 0xff | (VidPalette32[MinxLCD.Pixel1Intensity]<<8);
+//	pix0 = 0xff | (VidPalette32[MinxLCD.Pixel0Intensity]<<8);
 	for (yk=0; yk<64; yk++) {
 		ptr = screen;
 		for (xk=0; xk<96; xk++) {
@@ -333,6 +339,8 @@ void PokeMini_VideoAMatrix2x2_32(uint32_t *screen, int pitchW)
 			level = LCDPixelsA[LCDY + xk];
 			*ptr++ = 0xff000000 | VidPalette32[level * LCDMask2x2[maskH] >> 8];
 			*ptr++ = 0xff000000 | VidPalette32[level * LCDMask2x2[maskH+1] >> 8];
+//			*ptr++ = 0xff | (VidPalette32[level * LCDMask2x2[maskH] >> 8]<<8);
+//			*ptr++ = 0xff | (VidPalette32[level * LCDMask2x2[maskH+1] >> 8]<<8);
 		}
 		screen += pitchW;
 		maskH += 2;
@@ -405,6 +413,8 @@ void PokeMini_Video3Matrix2x2_32(uint32_t *screen, int pitchW)
 			}
 			*ptr++ = 0xff000000 | VidPalette32[level * LCDMask2x2[maskH] >> 8];
 			*ptr++ = 0xff000000 | VidPalette32[level * LCDMask2x2[maskH+1] >> 8];
+//			*ptr++ = 0xff | (VidPalette32[level * LCDMask2x2[maskH] >> 8]<<8);
+//			*ptr++ = 0xff | (VidPalette32[level * LCDMask2x2[maskH+1] >> 8]<<8);
 		}
 		screen += pitchW;
 		maskH += 2;
@@ -482,6 +492,8 @@ void PokeMini_Video2Matrix2x2_32(uint32_t *screen, int pitchW)
 			else level = MinxLCD.Pixel0Intensity;
 			*ptr++ = 0xff000000 | VidPalette32[level * LCDMask2x2[maskH] >> 8];
 			*ptr++ = 0xff000000 | VidPalette32[level * LCDMask2x2[maskH+1] >> 8];
+//			*ptr++ = 0xff | (VidPalette32[level * LCDMask2x2[maskH] >> 8]<<8);
+//			*ptr++ = 0xff | (VidPalette32[level * LCDMask2x2[maskH+1] >> 8]<<);
 		}
 		screen += pitchW;
 		maskH += 2;
@@ -549,12 +561,14 @@ void PokeMini_VideoANone2x2_32(uint32_t *screen, int pitchW)
 		ptr = screen;
 		for (xk=0; xk<96; xk++) {
 			pix = 0xff000000 | VidPalette32[LCDPixelsA[LCDY + xk]];
+//			pix = 0xff | (VidPalette32[LCDPixelsA[LCDY + xk]]<<8);
 			*ptr++ = pix; *ptr++ = pix;
 		}
 		screen += pitchW;
 		ptr = screen;
 		for (xk=0; xk<96; xk++) {
 			pix = 0xff000000 | VidPalette32[LCDPixelsA[LCDY + xk]];
+//			pix = 0xff | (VidPalette32[LCDPixelsA[LCDY + xk]]<<8);
 			*ptr++ = pix; *ptr++ = pix;
 		}
 		screen += pitchW;
@@ -621,6 +635,9 @@ void PokeMini_Video3None2x2_32(uint32_t *screen, int pitchW)
 				case 2: pix = 0xff000000 | VidPalette32[MinxLCD.Pixel1Intensity]; break;
 				case 1: pix = 0xff000000 | VidPalette32[(MinxLCD.Pixel0Intensity + MinxLCD.Pixel1Intensity) >> 1]; break;
 				default: pix = 0xff000000 | VidPalette32[MinxLCD.Pixel0Intensity]; break;
+//				case 2: pix = 0xff | (VidPalette32[MinxLCD.Pixel1Intensity]<<8); break;
+//				case 1: pix = 0xff | (VidPalette32[(MinxLCD.Pixel0Intensity + MinxLCD.Pixel1Intensity) >> 1]<<8); break;
+//				default: pix = 0xff | (VidPalette32[MinxLCD.Pixel0Intensity]<<8); break;
 			}
 			*ptr++ = pix; *ptr++ = pix;
 		}
@@ -631,6 +648,9 @@ void PokeMini_Video3None2x2_32(uint32_t *screen, int pitchW)
 				case 2: pix = 0xff000000 | VidPalette32[MinxLCD.Pixel1Intensity]; break;
 				case 1: pix = 0xff000000 | VidPalette32[(MinxLCD.Pixel0Intensity + MinxLCD.Pixel1Intensity) >> 1]; break;
 				default: pix = 0xff000000 | VidPalette32[MinxLCD.Pixel0Intensity]; break;
+//				case 2: pix = 0xff | (VidPalette32[MinxLCD.Pixel1Intensity]<<8); break;
+//				case 1: pix = 0xff | (VidPalette32[(MinxLCD.Pixel0Intensity + MinxLCD.Pixel1Intensity) >> 1]<<8); break;
+//				default: pix = 0xff | (VidPalette32[MinxLCD.Pixel0Intensity]<<8); break;
 			}
 			*ptr++ = pix; *ptr++ = pix;
 		}
@@ -709,6 +729,8 @@ void PokeMini_Video2None2x2_32(uint32_t *screen, int pitchW)
 	LCDY = 0;
 	pix1 = 0xff000000 | VidPalette32[MinxLCD.Pixel1Intensity];
 	pix0 = 0xff000000 | VidPalette32[MinxLCD.Pixel0Intensity];
+//	pix1 = 0xff | (VidPalette32[MinxLCD.Pixel1Intensity]<<8);
+//	pix0 = 0xff | (VidPalette32[MinxLCD.Pixel0Intensity]<<8);
 	for (yk=0; yk<64; yk++) {
 		ptr = screen;
 		for (xk=0; xk<96; xk++) {
@@ -790,12 +812,14 @@ void PokeMini_VideoColor2x2_32(uint32_t *screen, int pitchW)
 		ptr = screen;
 		for (xk=0; xk<96; xk++) {
 			pix = 0xff000000 | VidPalColor32[PRCColorPixels[LCDY + xk]];
+//			pix = 0xff | (VidPalColor32[PRCColorPixels[LCDY + xk]]<<8);
 			*ptr++ = pix; *ptr++ = pix;
 		}
 		screen += pitchW;
 		ptr = screen;
 		for (xk=0; xk<96; xk++) {
 			pix = 0xff000000 | VidPalColor32[PRCColorPixels[LCDY + xk]];
+//			pix = 0xff | (VidPalColor32[PRCColorPixels[LCDY + xk]]<<8);
 			*ptr++ = pix; *ptr++ = pix;
 		}
 		screen += pitchW;
@@ -860,6 +884,7 @@ void PokeMini_VideoColorL2x2_32(uint32_t *screen, int pitchW)
 		ptr = screen;
 		for (xk=0; xk<96; xk++) {
 			pix = 0xff000000 | VidPalColor32[PRCColorPixels[LCDY + xk]];
+//			pix = 0xff | (VidPalColor32[PRCColorPixels[LCDY + xk]]<<8);
 			*ptr++ = pix; *ptr++ = pix;
 		}
 		screen += pitchW;
@@ -930,12 +955,14 @@ void PokeMini_VideoColorH2x2_32(uint32_t *screen, int pitchW)
 		ptr = screen;
 		for (xk=0; xk<96; xk++) {
 			pix = 0xff000000 | VidPalColorH32[PRCColorPixels[LCDY + xk] * 256 + PRCColorPixelsOld[LCDY + xk]];
+//			pix = 0xff | (VidPalColorH32[PRCColorPixels[LCDY + xk] * 256 + PRCColorPixelsOld[LCDY + xk]]<<8);
 			*ptr++ = pix; *ptr++ = pix;
 		}
 		screen += pitchW;
 		ptr = screen;
 		for (xk=0; xk<96; xk++) {
 			pix = 0xff000000 | VidPalColorH32[PRCColorPixels[LCDY + xk] * 256 + PRCColorPixelsOld[LCDY + xk]];
+//			pix = 0xff | (VidPalColorH32[PRCColorPixels[LCDY + xk] * 256 + PRCColorPixelsOld[LCDY + xk]]<<8);
 			*ptr++ = pix; *ptr++ = pix;
 		}
 		screen += pitchW;

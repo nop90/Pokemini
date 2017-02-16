@@ -56,6 +56,7 @@ void PokeMini_VideoRect_32(uint32_t *screen, int pitchW, int x, int y, int width
 	for (yc=0; yc<height; yc++) {
 		for (xc=0; xc<width; xc++) {
 			screen[xc] = 0xff000000 | color;
+//			screen[xc] = 0xff | (color<<8);
 		}
 		screen += pitchW;
 	}
@@ -290,6 +291,8 @@ void PokeMini_VideoPreview2_32(uint32_t *screen, int pitchW)
 
 	pix1 = 0xff000000 | VidPalette32[MinxLCD.Pixel1Intensity];
 	pix0 = 0xff000000 | VidPalette32[MinxLCD.Pixel0Intensity];
+//	pix1 = 0xff | (VidPalette32[MinxLCD.Pixel1Intensity]<<8);
+//	pix0 = 0xff | (VidPalette32[MinxLCD.Pixel0Intensity]<<8);
 	for (yk=0; yk<64; yk++) {
 		for (xk=0; xk<96; xk++) {
 			if (LCDPixelsD[LCDP++]) screen[xk] = pix1;
@@ -322,6 +325,7 @@ void PokeMini_VideoPreviewA_32(uint32_t *screen, int pitchW)
 	for (yk=0; yk<64; yk++) {
 		for (xk=0; xk<96; xk++) {
 			screen[xk] = 0xff000000 | VidPalette32[LCDPixelsA[LCDP++]];
+//			screen[xk] = 0xff | (VidPalette32[LCDPixelsA[LCDP++]]<<8);
 		}
 		screen += pitchW;
 	}
@@ -349,6 +353,9 @@ void PokeMini_VideoPreview3_32(uint32_t *screen, int pitchW)
 				case 2: screen[xk] = 0xff000000 | VidPalette32[MinxLCD.Pixel1Intensity]; break;
 				case 1: screen[xk] = 0xff000000 | VidPalette32[(MinxLCD.Pixel0Intensity + MinxLCD.Pixel1Intensity) >> 1]; break;
 				default: screen[xk] = 0xff000000 | VidPalette32[MinxLCD.Pixel0Intensity]; break;
+//				case 2: screen[xk] = 0xff | (VidPalette32[MinxLCD.Pixel1Intensity]<<8); break;
+//				case 1: screen[xk] = 0xff | (VidPalette32[(MinxLCD.Pixel0Intensity + MinxLCD.Pixel1Intensity) >> 1]<<8); break;
+//				default: screen[xk] = 0xff | (VidPalette32[MinxLCD.Pixel0Intensity]<<8); break;
 			}
 			LCDP++;
 		}
@@ -380,6 +387,7 @@ void PokeMini_VideoPreviewC_32(uint32_t *screen, int pitchW)
 	for (yk=0; yk<64; yk++) {
 		for (xk=0; xk<96; xk++) {
 			screen[xk] = 0xff000000 | VidPalColor32[PRCColorPixels[LCDP++]];
+//			screen[xk] = 0xff | (VidPalColor32[PRCColorPixels[LCDP++]]<<8);
 		}
 		screen += pitchW;
 	}
@@ -404,6 +412,7 @@ void PokeMini_VideoPreviewCH_32(uint32_t *screen, int pitchW)
 	for (yk=0; yk<64; yk++) {
 		for (xk=0; xk<96; xk++) {
 			screen[xk] = 0xff000000 | VidPalColorH32[PRCColorPixels[LCDP] * 256 + PRCColorPixelsOld[LCDP]];
+//			screen[xk] = 0xff | (VidPalColorH32[PRCColorPixels[LCDP] * 256 + PRCColorPixelsOld[LCDP]]<<8);
 			LCDP++;
 		}
 		screen += pitchW;

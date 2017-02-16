@@ -18,6 +18,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <sys/stat.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -25,6 +26,7 @@
 #include <math.h>
 #include <3ds.h>
 #include <sf2d.h>
+#include <citro3d.h>
 
 
 #include "PokeMini.h"
@@ -42,7 +44,6 @@
 
 const char *AppName = "PokeMini " PokeMini_Version " 3DS";
 
-FS_archive sdmcArchive;
 Handle dirHandle;
 
 // For the emulator loop and video
@@ -105,6 +106,56 @@ const TCommandLineCustom CustomConf[] = {
 	{ "displayfps", &clc_displayfps, COMMANDLINE_BOOL },
 	{ "", NULL, COMMANDLINE_EOL }
 };
+
+static bool task_quit;
+static Handle task_pause_event;
+static Handle task_suspend_event;
+static aptHookCookie cookie;
+
+static void task_apt_hook(APT_HookType hook, void* param) {
+    switch(hook) {
+        case APTHOOK_ONSUSPEND:
+            svcClearEvent(task_suspend_event);
+			pm_3ds_sound_pause();
+            break;
+//        case APTHOOK_ONSLEEP:
+//            svcClearEvent(task_pause_event);
+//            break;
+        default:
+            break;
+    }
+}
+
+// 3ds custom code to handle home menu events
+
+void task_init() {
+    task_quit = false;
+
+    svcCreateEvent(&task_pause_event, RESET_STICKY);
+
+    svcCreateEvent(&task_suspend_event, RESET_STICKY);
+
+    svcSignalEvent(task_pause_event);
+    svcSignalEvent(task_suspend_event);
+
+    aptHook(&cookie, task_apt_hook, NULL);
+}
+
+void task_exit() {
+    task_quit = true;
+
+    aptUnhook(&cookie);
+
+    if(task_pause_event != 0) {
+        svcCloseHandle(task_pause_event);
+        task_pause_event = 0;
+    }
+
+    if(task_suspend_event != 0) {
+        svcCloseHandle(task_suspend_event);
+        task_suspend_event = 0;
+    }
+}
 
 // Platform menu (REQUIRED >= 0.4.4)
 int UIItems_PlatformC(int index, int reason);
@@ -209,29 +260,6 @@ void setup_screen()
 	}
 }
 
-void system_checkPolls() {
-    APP_STATUS status;
-
-	while((status=aptGetStatus()) != APP_RUNNING) {
-
-        if(status == APP_SUSPENDING)
-        {
-            aptReturnToMenu();
-        }
-        else if(status == APP_PREPARE_SLEEPMODE)
-        {
-			aptSignalReadyForSleep();
-            aptWaitStatusEvent();
-        }
-        else if (status == APP_SLEEPMODE) {
-        }
-        else if (status == APP_EXITING) {
-			emurunning = 0;
-        }
-
-    }
-}
-
 // Handle keyboard and quit events
 void handleevents()
 {
@@ -289,7 +317,6 @@ void handleevents()
 		} else if (keyup & KEY_R){ 
 			JoystickButtonsEvent(11, 0);
 		}
-	system_checkPolls();
 }
 
 // Used to fill the sound buffer
@@ -307,32 +334,34 @@ void enablesound(int sound)
 
 void Screen_Flip(void) {
 
-    GSPGPU_FlushDataCache(NULL, (u8*)screentex1->data, 128*256*4);
+    GSPGPU_FlushDataCache((u8*)screentex1->tex.data, 128*256*4);
 
 	screentex1->tiled = 0;
     sf2d_texture_tile32(screentex1);
+
+    GSPGPU_FlushDataCache((u8*)screentex1->tex.data, 128*256*4);
         
     sf2d_start_frame(GFX_TOP, GFX_LEFT);
 	
     switch (clc_zoom) {
 		case 1:
-			sf2d_draw_texture_rotate_cut_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 0, 96, 64, 1, 1); 
+			sf2d_draw_texture_part_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 96, 64, 1, 1); 
 			break;
 		case 2:
-			sf2d_draw_texture_rotate_cut_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 0, 96, 64, scaleY, scaleY); 
+			sf2d_draw_texture_part_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 96, 64, scaleY, scaleY); 
 			break;
 		case 3:
-			sf2d_draw_texture_rotate_cut_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 0, 96, 64, scaleX, scaleY); 
+			sf2d_draw_texture_part_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 96, 64, scaleX, scaleY); 
 			break;
 		case 4:
-			sf2d_draw_texture_rotate_cut_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 0, 192, 128, 1, 1); 
+			sf2d_draw_texture_part_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 192, 128, 1, 1); 
 			break;
 		case 5:
-			sf2d_draw_texture_rotate_cut_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 0, 192, 128, scaleY, scaleY); 
+			sf2d_draw_texture_part_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 192, 128, scaleY, scaleY); 
 			break;
 		case 6:
 		default:
-			sf2d_draw_texture_rotate_cut_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 0, 192, 128, scaleX, scaleY); 
+			sf2d_draw_texture_part_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 192, 128, scaleX, scaleY); 
 			break;
 	}
 	
@@ -344,13 +373,15 @@ void Screen_Flip(void) {
 
 void Screen_FlipUI(void) {
 	
-	GSPGPU_FlushDataCache(NULL, (u8*)screentex2->data, 512*256*4);
+	GSPGPU_FlushDataCache((u8*)screentex2->tex.data, 512*256*4);
 
 	screentex2->tiled = 0;
     sf2d_texture_tile32(screentex2);
+
+	GSPGPU_FlushDataCache((u8*)screentex2->tex.data, 512*256*4);
         
     sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
-    sf2d_draw_texture_rotate_cut_scale(screentex2, 0, 0, 0, 0, 0, 288, 192, scaleX2, scaleY2); 
+    sf2d_draw_texture_part_scale(screentex2, 0, 0, 0, 0, 288, 192, scaleX2, scaleY2); 
     sf2d_end_frame();
     gfxFlushBuffers();
 
@@ -359,45 +390,45 @@ void Screen_FlipUI(void) {
 	if(zoom_old<4){
 		switch (clc_zoom) {
 			case 1:
-				sf2d_draw_texture_rotate_cut_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 0, 96, 64, 1, 1); 
+				sf2d_draw_texture_part_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 96, 64, 1, 1); 
 				break;
 			case 2:
-				sf2d_draw_texture_rotate_cut_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 0, 96, 64, scaleY, scaleY); 
+				sf2d_draw_texture_part_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 96, 64, scaleY, scaleY); 
 				break;
 			case 3:
-				sf2d_draw_texture_rotate_cut_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 0, 96, 64, scaleX, scaleY); 
+				sf2d_draw_texture_part_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 96, 64, scaleX, scaleY); 
 				break;
 			case 4:
-				sf2d_draw_texture_rotate_cut_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 0, 96, 64, 2, 2); 
+				sf2d_draw_texture_part_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 96, 64, 2, 2); 
 				break;
 			case 5:
-				sf2d_draw_texture_rotate_cut_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 0, 96, 64, scaleY*2, scaleY*2); 
+				sf2d_draw_texture_part_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 96, 64, scaleY*2, scaleY*2); 
 				break;
 			case 6:
 			default:
-				sf2d_draw_texture_rotate_cut_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 0, 96, 64, scaleX*2, scaleY*2); 
+				sf2d_draw_texture_part_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 96, 64, scaleX*2, scaleY*2); 
 				break;
 		}
 	} else {
 		switch (clc_zoom) {
 			case 1:
-				sf2d_draw_texture_rotate_cut_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 0, 192, 128, 0.5, 0.5); 
+				sf2d_draw_texture_part_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 192, 128, 0.5, 0.5); 
 				break;
 			case 2:
-				sf2d_draw_texture_rotate_cut_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 0, 192, 128, scaleY/2, scaleY/2); 
+				sf2d_draw_texture_part_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 192, 128, scaleY/2, scaleY/2); 
 				break;
 			case 3:
-				sf2d_draw_texture_rotate_cut_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 0, 192, 128, scaleX/2, scaleY/2); 
+				sf2d_draw_texture_part_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 192, 128, scaleX/2, scaleY/2); 
 				break;
 			case 4:
-				sf2d_draw_texture_rotate_cut_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 0, 192, 128, 1, 1); 
+				sf2d_draw_texture_part_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 192, 128, 1, 1); 
 				break;
 			case 5:
-				sf2d_draw_texture_rotate_cut_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 0, 192, 128, scaleY, scaleY); 
+				sf2d_draw_texture_part_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 192, 128, scaleY, scaleY); 
 				break;
 			case 6:
 			default:
-				sf2d_draw_texture_rotate_cut_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 0, 192, 128, scaleX, scaleY); 
+				sf2d_draw_texture_part_scale(screentex1, pm_offsetX, pm_offsetY, 0, 0, 192, 128, scaleX, scaleY); 
 				break;
 		}
 	}
@@ -412,6 +443,7 @@ void Screen_FlipUI(void) {
 // Menu loop
 void menuloop()
 {
+	int running = 1;
 
 	// Stop sound
 	enablesound(0);
@@ -420,20 +452,25 @@ void menuloop()
 	PokeMini_SaveFromCommandLines(0);
 
 	// Menu's loop
-	while (emurunning && (UI_Status == UI_STATUS_MENU)) {
+	while (emurunning && (UI_Status == UI_STATUS_MENU) && (running=aptMainLoop())) {
 
 		// Process UI
 		UIMenu_Process();
 
 		// Screen rendering
 			// Render the menu or the game screen
-			UIMenu_Display_32(screentex2->data, PixPitchUI);
+			UIMenu_Display_32(screentex2->tex.data, PixPitchUI);
 			Screen_FlipUI();
 
 		// Handle events
 		handleevents();
+		svcSleepThread(10000000 * TICKS_PER_NSEC); // 10 msec
 	}
-
+	if (!running) 
+	{
+		emurunning = 0;
+		return;
+	}
 	// Apply configs
 	PokeMini_ApplyChanges();
 	if (UI_Status == UI_STATUS_EXIT) emurunning = 0;
@@ -446,20 +483,20 @@ int main()
 	char fpstxt[16];
 	char buffer[PMTMPV];
 
-	u8  isN3DS = 0;
+	_Bool isN3DS = false;
 
-	aptOpenSession();
-	APT_SetAppCpuTimeLimit(NULL, 30); // enables syscore usage
-	aptCloseSession();
+	cfguInit();
+	osSetSpeedupEnable(true);
+	APT_CheckNew3DS(&isN3DS);
 
-	APT_CheckNew3DS(NULL, &isN3DS);
+	task_init();
 
-    sdmcArchive = (FS_archive){ARCH_SDMC, (FS_path){PATH_EMPTY, 1, (u8*)""}};
-    FSUSER_OpenArchive(NULL, &sdmcArchive);
+	mkdir("/roms", 0777);
+	mkdir("/roms/Pokemini", 0777);
 
 	printf("%s\n\n", AppName);
 
-	strncpy(buffer, "sdmc:/Pokemini", PMTMPV-1);
+	strncpy(buffer, "sdmc:/roms/Pokemini", PMTMPV-1);
 	
 	chdir(buffer);
 	PokeMini_GetCurrentDir();
@@ -475,14 +512,15 @@ int main()
 		CommandLine.synccycles = 16; // default for o3DS to reach 72fps
 		
 	CommandLineConfFile("pokemini.cfg", NULL, NULL);
+
 	JoystickSetup("3DS", 0, 30000, Joy_KeysNames, 12, Joy_KeysMapping);
 
 	// Initialize GPU lib
-    sf2d_init();
-
-    sf2d_set_clear_color(RGBA8(0x00, 0x00, 0x00, 0xff));
-    sf2d_set_vblank_wait(1);
-
+	sf2d_init();
+	sf2d_set_3D(false);
+	sf2d_set_vblank_wait(true);
+	sf2d_set_clear_color(0xff000000);
+		
 	// Initialize the display
 
 	setup_screen();
@@ -537,7 +575,7 @@ int main()
 	deltafrmtick = (float)tickcurr + TICKS_PER_FRAME - frmticknext;
 	
 		// Emulator's loop
-	while (emurunning) {
+	while (emurunning && aptMainLoop()) {
 
 		// Handle events
 		handleevents();
@@ -552,14 +590,14 @@ int main()
 
 		// Screen rendering: render the game screen
 		if (PokeMini_Rumbling) {
-			PokeMini_VideoBlit(screentex1->data + RUMBLEOFFSET, PixPitch);
+			PokeMini_VideoBlit(screentex1->tex.data + RUMBLEOFFSET, PixPitch);
 		} else {
-			PokeMini_VideoBlit(screentex1->data, PixPitch);
+			PokeMini_VideoBlit(screentex1->tex.data, PixPitch);
 		}
 
 		// Display FPS counter
 		if (clc_displayfps) {
-			UIDraw_String_32((uint32_t *)screentex1->data, PixPitch, 4, 4, 10, fpstxt, UI_Font1_Pal32);
+			UIDraw_String_32((uint32_t *)screentex1->tex.data, PixPitch, 4, 4, 10, fpstxt, UI_Font1_Pal32);
 		}
 
 		LCDDirty = 0;
@@ -585,28 +623,30 @@ int main()
 		if (UI_Status == UI_STATUS_MENU){
 
 			menuloop();
+			if (emurunning) { // to force exit called by 3ds menu and avoid hanging caysed to trying to draw to screen not having it's control.
 
-			// tricky way to turn black the two bottom framebuffer while running the rom without 
-			// having to draw on them at every frame (for performance)
-			// may not work with CIA going to menu and returning to program (framebuffer addresses may change)
-			sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
-			sf2d_draw_rectangle(0,0,288,192,0x000000ff);
-			sf2d_end_frame();
-			gfxFlushBuffers();
-			sf2d_swapbuffers();
-			sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
-			sf2d_draw_rectangle(0,0,288,192,0x000000ff);
-			sf2d_end_frame();
-			gfxFlushBuffers();
-			sf2d_swapbuffers();
-			
-			// clear timers
-			strcpy(fpstxt, "");
-			fpscnt = 0;
-			tickcurr=svcGetSystemTick();
-			fpsticknext = tickcurr + TICKS_PER_SEC;
-			frmticknext = tickcurr + TICKS_PER_FRAME;
-			deltafrmtick = (float)tickcurr + TICKS_PER_FRAME - frmticknext;
+				// tricky way to turn black the two bottom framebuffer while running the rom without 
+				// having to draw on them at every frame (for performance)
+				// may not work with CIA going to menu and returning to program (framebuffer addresses may change)
+				sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
+				sf2d_draw_rectangle(0,0,288,192,0xff000000);
+				sf2d_end_frame();
+				gfxFlushBuffers();
+				sf2d_swapbuffers();
+				sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
+				sf2d_draw_rectangle(0,0,288,192,0xff000000);
+				sf2d_end_frame();
+				gfxFlushBuffers();
+				sf2d_swapbuffers();
+				
+				// clear timers
+				strcpy(fpstxt, "");
+				fpscnt = 0;
+				tickcurr=svcGetSystemTick();
+				fpsticknext = tickcurr + TICKS_PER_SEC;
+				frmticknext = tickcurr + TICKS_PER_FRAME;
+				deltafrmtick = (float)tickcurr + TICKS_PER_FRAME - frmticknext;
+			}
 		}
 	}
 
@@ -625,8 +665,7 @@ int main()
     sf2d_free_texture(screentex1);
     sf2d_free_texture(screentex2);
     sf2d_fini();
-	aptExit();
-
+	task_exit();
 	return 0;
 }
 
